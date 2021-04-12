@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cl_tracker_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_tracker_footer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="36dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_tracker_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_tracker_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="48dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_tracker_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="48dp" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/cpi_tracker_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:max="10000"
+        android:progress="5000"
+        app:indicatorColor="@color/colorAccent"
+        app:indicatorDirectionCircular="clockwise"
+        app:indicatorInset="10dp"
+        app:indicatorSize="250dp"
+        app:layout_constraintBottom_toTopOf="@id/b_tracker_change_record_state"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:trackColor="@color/ProgressBackgroundLight" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_medium"
+        android:text="@string/common_tracker"
+        android:textColor="@color/TextPrimaryLight"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/tv_tracker_current_counter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_current_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_medium"
+        android:textColor="@color/TextPrimaryLight"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toTopOf="@id/b_tracker_change_record_state"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        tools:text="100000" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_goal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/nunito_medium"
+        android:textColor="@color/colorAccent"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_tracker_current_counter"
+        tools:text="@string/fragment_steps_goal_description" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/b_tracker_change_record_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        app:backgroundTint="@color/colorAccent"
+        app:layout_constraintBottom_toTopOf="@id/tv_tracker_distance_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="@string/fragment_steps_start_recording_description" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_distance_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/nunito_medium"
+        android:text="@string/fragment_steps_distance_title"
+        android:textColor="@color/TextPrimaryLight"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/tv_tracker_energy_title"
+        app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_start" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_distance_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/nunito_medium"
+        android:gravity="end"
+        android:textColor="@color/colorAccent"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/tv_tracker_energy_value"
+        app:layout_constraintEnd_toStartOf="@id/gl_tracker_end"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_center"
+        tools:text="4 км" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_energy_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/nunito_medium"
+        android:text="@string/fragment_steps_energy_title"
+        android:textColor="@color/TextPrimaryLight"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/tv_tracker_time_title"
+        app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_start" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_energy_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/nunito_medium"
+        android:gravity="end"
+        android:textColor="@color/colorAccent"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/chm_tracker_time_value"
+        app:layout_constraintEnd_toStartOf="@id/gl_tracker_end"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_center"
+        tools:text="400 калл" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_tracker_time_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_medium"
+        android:text="@string/fragment_steps_time_title"
+        android:textColor="@color/TextPrimaryLight"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/gl_tracker_footer"
+        app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_start" />
+
+    <Chronometer
+        android:id="@+id/chm_tracker_time_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_medium"
+        android:gravity="end"
+        android:textColor="@color/colorAccent"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@id/gl_tracker_footer"
+        app:layout_constraintEnd_toStartOf="@id/gl_tracker_end"
+        app:layout_constraintStart_toEndOf="@id/gl_tracker_center" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

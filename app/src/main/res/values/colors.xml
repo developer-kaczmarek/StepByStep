@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="TextPrimaryLight">#FF000000</color>
+    <color name="TextPrimaryDark">#FFFFFF</color>
+
+    <color name="colorAccent">#FF5050</color>
+
+    <color name="ProgressBackgroundLight">#F1F3F6</color>
+</resources>

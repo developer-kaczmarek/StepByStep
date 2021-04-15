@@ -29,7 +29,7 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
         // Временное решение
         viewState.initIndicatorsValue(
                 0F,
-                4000,
+                4500,
                 0F,
                 0F,
                 0F,

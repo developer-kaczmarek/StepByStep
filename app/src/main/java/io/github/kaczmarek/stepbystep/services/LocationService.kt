@@ -112,10 +112,10 @@ class LocationService : Service(), CoroutineScope {
             this,
             getString(R.string.service_location_notification_channel_id)
         )
-            .setContentTitle(getString(R.string.app_name))
+            .setContentTitle(getString(R.string.service_location_notification_title))
             .setContentText(getString(R.string.service_location_notification_text))
-            .setSmallIcon(R.drawable.ic_satellite_24)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_satellite_24))
+            .setSmallIcon(R.drawable.ic_record_location_24)
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_record_location_24))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()

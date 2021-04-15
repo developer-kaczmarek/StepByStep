@@ -47,6 +47,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/colorAccent"
+        app:cardCornerRadius="12dp"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_end"
         app:layout_constraintStart_toStartOf="@id/gl_tracker_start"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
@@ -61,7 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/nunito_regular"
-                android:text="Дистанция"
+                android:text="@string/fragment_tracker_distance_title"
                 android:textColor="@color/TextPrimaryDark"
                 android:textSize="18sp" />
 
@@ -72,9 +73,9 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:fontFamily="@font/nunito_regular"
-                android:text="2 км"
                 android:textColor="@color/TextPrimaryDark"
-                android:textSize="36sp" />
+                android:textSize="36sp"
+                tools:text="2 км" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/lpi_tracker_goal_progress"
@@ -91,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/nunito_regular"
-                    android:text="Текущая цель"
+                    android:text="@string/fragment_tracker_goal_description"
                     android:textColor="@color/TextPrimaryDark"
                     android:textSize="18sp" />
 
@@ -100,9 +101,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/nunito_regular"
-                    android:text="4 км"
                     android:textColor="@color/TextPrimaryDark"
-                    android:textSize="18sp" />
+                    android:textSize="18sp"
+                    tools:text="4 км" />
             </LinearLayout>
         </LinearLayout>
 
@@ -114,7 +115,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="@string/fragment_steps_time_title"
+        android:text="@string/fragment_tracker_time_title"
         app:layout_constraintBottom_toTopOf="@id/tv_tracker_current_speed_title"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -136,7 +137,7 @@
         style="@style/ParamsTitleTheme"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Скорость"
+        android:text="@string/fragment_tracker_speed_title"
         app:layout_constraintBottom_toTopOf="@id/tv_tracker_max_speed_title"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -158,7 +159,7 @@
         style="@style/ParamsTitleTheme"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Макс. скорость"
+        android:text="@string/fragment_tracker_max_speed_title"
         app:layout_constraintBottom_toTopOf="@id/tv_tracker_average_speed_title"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -180,7 +181,7 @@
         style="@style/ParamsTitleTheme"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Ср. скорость"
+        android:text="@string/fragment_tracker_average_speed_title"
         app:layout_constraintBottom_toTopOf="@id/tv_tracker_accuracy_title"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -202,7 +203,7 @@
         style="@style/ParamsTitleTheme"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Точность"
+        android:text="@string/fragment_tracker_accuracy_title"
         app:layout_constraintBottom_toTopOf="@id/tv_tracker_satellites_title"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -224,7 +225,7 @@
         style="@style/ParamsTitleTheme"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Спутники"
+        android:text="@string/fragment_tracker_satellites_title"
         app:layout_constraintBottom_toTopOf="@id/b_tracker_change_record_state"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_center"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
@@ -247,10 +248,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         app:backgroundTint="@color/colorAccent"
+        app:cornerRadius="8dp"
         app:layout_constraintBottom_toBottomOf="@id/gl_tracker_footer"
         app:layout_constraintEnd_toStartOf="@id/gl_tracker_end"
         app:layout_constraintStart_toEndOf="@id/gl_tracker_start"
         app:layout_constraintTop_toBottomOf="@id/tv_tracker_satellites_title"
-        tools:text="@string/fragment_steps_start_recording_description" />
+        tools:text="@string/fragment_tracker_start_recording_description" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

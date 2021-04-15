@@ -23,6 +23,8 @@ import io.github.kaczmarek.stepbystep.ui.main.LocationServiceLifecycleListener
 import io.github.kaczmarek.stepbystep.ui.base.BaseFragment
 import io.github.kaczmarek.stepbystep.ui.main.MainActivity
 import io.github.kaczmarek.stepbystep.utils.AppInsets
+import io.github.kaczmarek.stepbystep.utils.Utils.addLengthUnit
+import io.github.kaczmarek.stepbystep.utils.Utils.conversionInKmH
 import moxy.ktx.moxyPresenter
 import java.text.SimpleDateFormat
 import java.util.*
@@ -85,7 +87,7 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
             presenter.getActualTrackInformation()
         }
         with(bChangeRecordState) {
-            setText(R.string.fragment_steps_start_recording_description)
+            setText(R.string.fragment_tracker_start_recording_description)
             setOnClickListener {
                 if (isStoppedRecord) {
                     when {
@@ -126,15 +128,16 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
             time: Long,
             satellitesCount: Int
     ) {
-        tvCurrentDistance.text = realDistance.toString()
+        tvCurrentDistance.text = realDistance.addLengthUnit()
         with(lpiGoalProgress) {
             progress = realDistance.toInt()
             max = goalDistance
         }
-        tvAccuracy.text = currentAccuracy.toString()
-        tvCurrentSpeed.text = currentSpeed.toString()
-        tvMaxSpeed.text = maxSpeed.toString()
-        tvAverageSpeed.text = averageSpeed.toString()
+        tvGoalDistance.text = goalDistance.addLengthUnit()
+        tvAccuracy.text = currentAccuracy.addLengthUnit()
+        tvCurrentSpeed.text = currentSpeed.conversionInKmH()
+        tvMaxSpeed.text = maxSpeed.conversionInKmH()
+        tvAverageSpeed.text = averageSpeed.conversionInKmH()
         tvSatellites.text = satellitesCount.toString()
     }
 
@@ -145,25 +148,25 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
             maxSpeed: Float,
             averageSpeed: Double
     ) {
-        tvCurrentDistance.text = realDistance.toString()
+        tvCurrentDistance.text = realDistance.addLengthUnit()
         lpiGoalProgress.progress = realDistance.toInt()
-        tvAccuracy.text = currentAccuracy.toString()
-        tvCurrentSpeed.text = currentSpeed.toString()
-        tvMaxSpeed.text = maxSpeed.toString()
-        tvAverageSpeed.text = averageSpeed.toString()
+        tvAccuracy.text = currentAccuracy.addLengthUnit()
+        tvCurrentSpeed.text = currentSpeed.conversionInKmH()
+        tvMaxSpeed.text = maxSpeed.conversionInKmH()
+        tvAverageSpeed.text = averageSpeed.conversionInKmH()
     }
 
     private fun changeTrackRecordState() {
         if (isStoppedRecord) {
             locationServiceLifecycleListener?.startService()
-            bChangeRecordState.setText(R.string.fragment_steps_stop_recording_description)
+            bChangeRecordState.setText(R.string.fragment_tracker_stop_recording_description)
             with(chmTimeRecord) {
                 base = SystemClock.elapsedRealtime()
                 start()
             }
         } else {
             locationServiceLifecycleListener?.stopService()
-            bChangeRecordState.setText(R.string.fragment_steps_start_recording_description)
+            bChangeRecordState.setText(R.string.fragment_tracker_start_recording_description)
             chmTimeRecord.stop()
             //Запись в бд показателей сессии
         }

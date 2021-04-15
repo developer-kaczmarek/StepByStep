@@ -25,4 +25,18 @@
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:textColor">@color/TextPrimaryDark</item>
     </style>
+
+    <style name="ParamsTitleTheme" parent="Theme.StepByStep">
+        <item name="fontFamily">@font/nunito_medium</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/TextPrimaryDark</item>
+    </style>
+
+    <style name="PointValueTextTheme" parent="Theme.StepByStep">
+        <item name="fontFamily">@font/nunito_medium</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:gravity">end</item>
+    </style>
 </resources>

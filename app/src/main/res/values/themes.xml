@@ -36,7 +36,7 @@
     <style name="PointValueTextTheme" parent="Theme.StepByStep">
         <item name="fontFamily">@font/nunito_medium</item>
         <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textColor">@color/AccentDefaultLight</item>
         <item name="android:gravity">end</item>
     </style>
 </resources>

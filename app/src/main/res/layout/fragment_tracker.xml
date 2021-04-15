@@ -33,21 +33,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="16dp" />
+        app:layout_constraintGuide_begin="24dp" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/gl_tracker_end"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_end="16dp" />
+        app:layout_constraintGuide_end="24dp" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_tracker_distance"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/colorAccent"
+        app:cardBackgroundColor="@color/AccentDefaultLight"
         app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
         app:layout_constraintEnd_toEndOf="@id/gl_tracker_end"
         app:layout_constraintStart_toStartOf="@id/gl_tracker_start"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
@@ -247,7 +248,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:backgroundTint="@color/colorAccent"
+        app:backgroundTint="@color/AccentDefaultLight"
         app:cornerRadius="8dp"
         app:layout_constraintBottom_toBottomOf="@id/gl_tracker_footer"
         app:layout_constraintEnd_toStartOf="@id/gl_tracker_end"

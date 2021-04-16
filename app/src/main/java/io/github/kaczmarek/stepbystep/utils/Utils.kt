@@ -20,19 +20,11 @@ object Utils {
             )
     }
 
-    fun getKilometer(meter: Float): Float {
-        return meter / 1000
-    }
-
-    fun getKilometer(meter: Int): Float {
-        return meter.toFloat() / 1000
-    }
-
     fun Float.addLengthUnit(): String {
         return if (this < 1000F) {
-            getString(R.string.common_m, DecimalFormat("#.##").format(this))
+            getString(R.string.common_m, DecimalFormat("#.##").format(if (this.isNaN()) 0F else this))
         } else {
-            getString(R.string.common_km, DecimalFormat("#.##").format(getKilometer(this)))
+            getString(R.string.common_km, DecimalFormat("#.##").format(getKilometer(if (this.isNaN()) 0F else this)))
         }
     }
 
@@ -45,10 +37,18 @@ object Utils {
     }
 
     fun Double.conversionInKmH(): String {
-        return getString(R.string.common_km_h, DecimalFormat("#.##").format(this))
+        return getString(R.string.common_km_h, DecimalFormat("#.##").format(if (this.isNaN()) 0.0 else this))
     }
 
     fun Float.conversionInKmH(): String {
-        return getString(R.string.common_km_h, DecimalFormat("#.##").format(this))
+        return getString(R.string.common_km_h, DecimalFormat("#.##").format(if (this.isNaN()) 0F else this))
+    }
+
+    private fun getKilometer(meter: Float): Float {
+        return meter / 1000
+    }
+
+    private fun getKilometer(meter: Int): Float {
+        return meter.toFloat() / 1000
     }
 }

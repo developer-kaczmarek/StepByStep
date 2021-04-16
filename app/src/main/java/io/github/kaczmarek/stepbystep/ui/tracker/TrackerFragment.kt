@@ -87,6 +87,7 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
             if (isGranted) {
                 startTrackRecord()
                 registerGnssStatusCallback()
+                changeRecordButtonsState()
             } else {
                 showRequestPermissionRationale()
             }

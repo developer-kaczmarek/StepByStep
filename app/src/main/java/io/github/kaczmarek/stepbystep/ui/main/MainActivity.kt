@@ -128,7 +128,7 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
      */
     override fun startService() {
         try {
-            if (!isServiceRunning(LocationService::class.java)) {
+            if (!isServiceRunning()) {
                 val intent = Intent(this, LocationService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     startForegroundService(intent)
@@ -169,11 +169,11 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
      * Метод для определения был ли запущен сервис геолокации.
      */
     @Suppress("DEPRECATION")
-    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+    override fun isServiceRunning(): Boolean {
         val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
         for (service in activityManager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
+            if (LocationService::class.java.name == service.service.className) {
                 return true
             }
         }

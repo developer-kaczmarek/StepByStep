@@ -11,7 +11,7 @@ import io.github.kaczmarek.stepbystep.utils.applyWindowInsets
 import moxy.MvpAppCompatFragment
 
 abstract class BaseFragment(@LayoutRes contentLayoutId: Int) :
-        MvpAppCompatFragment(contentLayoutId), InsetsListener {
+    MvpAppCompatFragment(contentLayoutId), InsetsListener {
 
     protected var toolbar: Toolbar? = null
 
@@ -29,6 +29,26 @@ abstract class BaseFragment(@LayoutRes contentLayoutId: Int) :
         toolbar?.let {
             baseActivity?.setSupportActionBar(toolbar)
         }
+    }
+
+    open fun showAlertDialog(
+        title: String? = null,
+        message: String,
+        posBtnTxt: String = getString(R.string.common_ok),
+        negBtnTxt: String? = null,
+        negBtnAction: () -> Unit = {},
+        posBtnAction: () -> Unit = {},
+        cancellable: Boolean = true
+    ) {
+        baseActivity?.showAlertDialog(
+            title,
+            message,
+            posBtnTxt,
+            negBtnTxt,
+            negBtnAction,
+            posBtnAction,
+            cancellable
+        )
     }
 
     fun showBackArrowButton() {

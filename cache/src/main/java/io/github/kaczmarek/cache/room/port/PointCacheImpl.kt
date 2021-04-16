@@ -11,19 +11,19 @@ class PointCacheImpl(
 ) : PointCache {
 
     override suspend fun getPoints(): List<PointEntity> {
-       return roomDatabase.pointDao().getPoints().map { mapper.mapToEntity(it) }
+        return roomDatabase.pointDao().getPoints().map { mapper.mapToEntity(it) }
     }
 
     override suspend fun insert(vararg obj: PointEntity) {
-        roomDatabase.pointDao().insert(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.pointDao().insert(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun update(vararg obj: PointEntity) {
-        roomDatabase.pointDao().update(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.pointDao().update(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun delete(vararg obj: PointEntity) {
-        roomDatabase.pointDao().delete(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.pointDao().delete(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun deleteAll() {

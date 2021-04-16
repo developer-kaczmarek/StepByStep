@@ -3,16 +3,20 @@ package io.github.kaczmarek.stepbystep.ui.tracker
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.location.GnssStatus
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.Settings
 import android.view.View
 import android.widget.Chronometer
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -29,9 +33,8 @@ import moxy.ktx.moxyPresenter
 import java.text.SimpleDateFormat
 import java.util.*
 
-class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
+class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, View.OnClickListener {
 
-    private var isStoppedRecord = true
     private var locationServiceLifecycleListener: LocationServiceLifecycleListener? = null
     private var gnssStatusCallback: GnssStatus.Callback? = null
     private var locationManager: LocationManager? = null
@@ -45,8 +48,11 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
     private lateinit var tvSatellites: MaterialTextView
     private lateinit var lpiGoalProgress: LinearProgressIndicator
     private lateinit var chmTimeRecord: Chronometer
-    private lateinit var bChangeRecordState: MaterialButton
+    private lateinit var bStartRecord: MaterialButton
+    private lateinit var bStopRecord: MaterialButton
+    private lateinit var bPauseRecord: MaterialButton
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var openSettingsLauncher: ActivityResultLauncher<Intent>
 
     private val presenter by moxyPresenter { TrackerPresenter() }
 
@@ -57,7 +63,7 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
 
         val currentDateTime = Date()
         toolbar?.title =
-                SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(currentDateTime)
+            SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(currentDateTime)
         showBackArrowButton()
 
         clContainer = view.findViewById(R.id.cl_tracker_container)
@@ -71,46 +77,39 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
         tvSatellites = view.findViewById(R.id.tv_tracker_satellites_value)
         chmTimeRecord = view.findViewById(R.id.chm_tracker_time_value)
         lpiGoalProgress = view.findViewById(R.id.lpi_tracker_goal_progress)
-        bChangeRecordState = view.findViewById(R.id.b_tracker_change_record_state)
+        bStartRecord = view.findViewById(R.id.b_tracker_start_record)
+        bStopRecord = view.findViewById(R.id.b_tracker_stop_record)
+        bPauseRecord = view.findViewById(R.id.b_tracker_pause_record)
 
         requestPermissionLauncher = registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
+            ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                changeTrackRecordState()
+                startTrackRecord()
                 registerGnssStatusCallback()
             } else {
-                // Показать диалоговое окно, что кина не будет
+                showRequestPermissionRationale()
             }
         }
+
+        openSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
         chmTimeRecord.setOnChronometerTickListener {
             presenter.getActualTrackInformation()
         }
-        with(bChangeRecordState) {
-            setText(R.string.fragment_tracker_start_recording_description)
-            setOnClickListener {
-                if (isStoppedRecord) {
-                    when {
-                        isLocationPermissionGranted(requireContext()) -> {
-                            changeTrackRecordState()
-                            registerGnssStatusCallback()
-                        }
-                        shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-
-                        }
-                        else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-                } else {
-                    changeTrackRecordState()
-                }
-            }
-        }
-
+        bStartRecord.setOnClickListener(this)
+        bStopRecord.setOnClickListener(this)
+        bPauseRecord.setOnClickListener(this)
+        changeRecordButtonsState()
         presenter.initIndicatorsValue()
     }
 
     override fun onDestroyView() {
         gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
+        openSettingsLauncher.unregister()
+        requestPermissionLauncher.unregister()
         super.onDestroyView()
     }
 
@@ -119,14 +118,14 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
     }
 
     override fun initIndicatorsValue(
-            realDistance: Float,
-            goalDistance: Int,
-            currentAccuracy: Float,
-            currentSpeed: Float,
-            maxSpeed: Float,
-            averageSpeed: Double,
-            time: Long,
-            satellitesCount: Int
+        realDistance: Float,
+        goalDistance: Int,
+        currentAccuracy: Float,
+        currentSpeed: Float,
+        maxSpeed: Float,
+        averageSpeed: Double,
+        time: Long,
+        satellitesCount: Int
     ) {
         tvCurrentDistance.text = realDistance.addLengthUnit()
         with(lpiGoalProgress) {
@@ -142,11 +141,11 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
     }
 
     override fun updateParamsValue(
-            realDistance: Float,
-            currentAccuracy: Float,
-            currentSpeed: Float,
-            maxSpeed: Float,
-            averageSpeed: Double
+        realDistance: Float,
+        currentAccuracy: Float,
+        currentSpeed: Float,
+        maxSpeed: Float,
+        averageSpeed: Double
     ) {
         tvCurrentDistance.text = realDistance.addLengthUnit()
         lpiGoalProgress.progress = realDistance.toInt()
@@ -156,21 +155,66 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView {
         tvAverageSpeed.text = averageSpeed.conversionInKmH()
     }
 
-    private fun changeTrackRecordState() {
-        if (isStoppedRecord) {
-            locationServiceLifecycleListener?.startService()
-            bChangeRecordState.setText(R.string.fragment_tracker_stop_recording_description)
-            with(chmTimeRecord) {
-                base = SystemClock.elapsedRealtime()
-                start()
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.b_tracker_start_record -> {
+                when {
+                    isLocationPermissionGranted(requireContext()) -> {
+                        startTrackRecord()
+                        registerGnssStatusCallback()
+                        changeRecordButtonsState()
+                    }
+                    shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> showRequestPermissionRationale()
+                    else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
             }
-        } else {
-            locationServiceLifecycleListener?.stopService()
-            bChangeRecordState.setText(R.string.fragment_tracker_start_recording_description)
-            chmTimeRecord.stop()
-            //Запись в бд показателей сессии
+            R.id.b_tracker_stop_record -> {
+                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
+                suspendTrackRecord(isFinished = true)
+                changeRecordButtonsState()
+            }
+            R.id.b_tracker_pause_record -> {
+                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
+                suspendTrackRecord(isFinished = false)
+                changeRecordButtonsState()
+            }
         }
-        isStoppedRecord = !isStoppedRecord
+    }
+
+    private fun startTrackRecord() {
+        locationServiceLifecycleListener?.startService()
+        with(chmTimeRecord) {
+            base = SystemClock.elapsedRealtime()
+            start()
+        }
+    }
+
+    private fun suspendTrackRecord(isFinished: Boolean) {
+        locationServiceLifecycleListener?.stopService()
+        chmTimeRecord.stop()
+        presenter.saveCurrentTrack(chmTimeRecord.base, isFinished)
+    }
+
+    private fun changeRecordButtonsState() {
+        bStartRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == false
+        bStopRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == true
+        bPauseRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == true
+    }
+
+    private fun showRequestPermissionRationale() {
+        showAlertDialog(
+            title = getString(R.string.access_fine_location_permission_title),
+            message = getString(R.string.access_fine_location_permission_description),
+            posBtnTxt = getString(R.string.common_settings),
+            posBtnAction = {
+                val intent = Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", context?.packageName, null)
+                }
+                openSettingsLauncher.launch(intent)
+            },
+            negBtnTxt = getString(R.string.common_cancel)
+        )
     }
 
     @SuppressLint("MissingPermission")

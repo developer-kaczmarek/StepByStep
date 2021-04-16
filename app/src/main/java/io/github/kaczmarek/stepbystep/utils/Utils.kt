@@ -14,10 +14,10 @@ object Utils {
 
     fun getString(@StringRes id: Int, vararg parameters: Any): String {
         return application?.getString(id, *parameters)
-                ?: throw IllegalStateException(
-                        "Application context in Utils not initialized.Please " +
-                                "call method init in your Application instance"
-                )
+            ?: throw IllegalStateException(
+                "Application context in Utils not initialized.Please " +
+                    "call method init in your Application instance"
+            )
     }
 
     fun getKilometer(meter: Float): Float {

@@ -9,6 +9,8 @@
     <string name="common_tracker">Трекер</string>
     <string name="common_statistics">Статистика</string>
     <string name="common_settings">Настройки</string>
+    <string name="common_ok">Понятно</string>
+    <string name="common_cancel">Отмена</string>
 
     <!-- Navigation Drawer Description -->
     <string name="navigation_drawer_open">Открыть меню</string>
@@ -29,6 +31,7 @@
     <string name="fragment_tracker_goal_description">Текущая цель</string>
     <string name="fragment_tracker_start_recording_description">Старт</string>
     <string name="fragment_tracker_stop_recording_description">Стоп</string>
+    <string name="fragment_tracker_pause_recording_description">Пауза</string>
 
     <!-- Location Service -->
     <string name="service_location_notification_channel_name">Сервис трекинга геолокации</string>
@@ -36,4 +39,10 @@
     <string name="service_location_notification_title">Идет запись трека</string>
     <string name="service_location_notification_channel_id">8653320</string>
     <string name="service_location_notification_group">service_location_notification_group</string>
+
+    <!-- Location -->
+    <string name="access_fine_location_adapter_turned_off_title">GPS адаптер выключен</string>
+    <string name="access_fine_location_permission_title">Требуется разрешение</string>
+    <string name="access_fine_location_permission_description">Для записи трека необходимо дать разрешение для приложения на определение местоположения.</string>
+    <string name="access_fine_location_adapter_turned_off_description">Пожалуйста, включите позиционирование по GPS в системных настройках для осуществления записи трека по координатным точкам.</string>
 </resources>

@@ -5,24 +5,26 @@ import android.content.SharedPreferences
 import androidx.room.Database
 import androidx.room.Room
 import io.github.kaczmarek.cache.room.dao.PointDao
+import io.github.kaczmarek.cache.room.dao.TrackDao
 import io.github.kaczmarek.cache.room.model.PointDBModel
+import io.github.kaczmarek.cache.room.model.TrackDBModel
 
 @Database(
     entities = [
-        PointDBModel::class
+        PointDBModel::class,
+        TrackDBModel::class
     ],
     version = 1
 )
 abstract class RoomDatabase : androidx.room.RoomDatabase() {
 
     abstract fun pointDao(): PointDao
+    abstract fun trackDao(): TrackDao
 
     companion object {
         @Volatile
         private var INSTANCE: RoomDatabase? = null
-
         private const val DB_NAME = "step_by_step_db"
-
         private lateinit var prefs: SharedPreferences
 
         fun getDatabase(context: Context, prefs: SharedPreferences): RoomDatabase {

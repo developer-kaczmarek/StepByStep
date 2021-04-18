@@ -3,7 +3,11 @@
     <color name="TextPrimaryLight">#FF000000</color>
     <color name="TextPrimaryDark">#FFFFFF</color>
 
-    <color name="colorAccent">#FF5050</color>
+    <color name="AccentDefaultLight">#FF5050</color>
 
-    <color name="ProgressBackgroundLight">#F1F3F6</color>
+    <color name="BackgroundDefaultLight">#FFFFFF</color>
+    <color name="BackgroundDefaultDark">#1E1E1E</color>
+
+    <color name="BackgroundSecondaryLight">#F1F3F6</color>
+    <color name="BackgroundSecondaryDark">#FF000000</color>
 </resources>

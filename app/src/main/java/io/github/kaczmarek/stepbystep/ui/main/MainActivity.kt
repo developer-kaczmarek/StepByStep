@@ -1,6 +1,10 @@
 package io.github.kaczmarek.stepbystep.ui.main
 
+import android.app.ActivityManager
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.widget.FrameLayout
@@ -11,16 +15,18 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import io.github.kaczmarek.stepbystep.R
+import io.github.kaczmarek.stepbystep.services.LocationService
 import io.github.kaczmarek.stepbystep.ui.base.BaseActivity
 import io.github.kaczmarek.stepbystep.ui.settings.SettingsFragment
 import io.github.kaczmarek.stepbystep.ui.statistics.StatisticsFragment
 import io.github.kaczmarek.stepbystep.ui.tracker.TrackerFragment
+import io.github.kaczmarek.stepbystep.utils.logDebug
 import io.github.kaczmarek.stepbystep.utils.navigation.OnNavigateListener
 import io.github.kaczmarek.stepbystep.utils.navigation.attachFragment
 import moxy.ktx.moxyPresenter
 
 class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateListener,
-        View.OnClickListener {
+    View.OnClickListener, LocationServiceLifecycleListener {
 
     private lateinit var dlMainContainer: DrawerLayout
     private lateinit var clMenuContainer: ConstraintLayout
@@ -46,7 +52,12 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         settingsMenuItem.setOnClickListener(this)
         exitMenuItem.setOnClickListener(this)
 
-        actionBarDrawerToggle = object : ActionBarDrawerToggle(this, dlMainContainer, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+        actionBarDrawerToggle = object : ActionBarDrawerToggle(
+            this,
+            dlMainContainer,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        ) {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                 super.onDrawerSlide(drawerView, slideOffset)
                 with(flContentContainer) {
@@ -83,10 +94,10 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
 
     override fun onNavigate(fragmentInstance: Fragment, tag: String?, isAddToBackStack: Boolean) {
         supportFragmentManager.attachFragment(
-                R.id.flMainContentContainer,
-                fragmentInstance,
-                tag,
-                isAddToBackStack
+            R.id.flMainContentContainer,
+            fragmentInstance,
+            tag,
+            isAddToBackStack
         )
     }
 
@@ -111,6 +122,40 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         }
     }
 
+    /**
+     * Метод для старта сервиса геолокации.
+     * Перед стартом необходимо запрашивать разрешение на получение координат.
+     */
+    override fun startService() {
+        try {
+            if (!isServiceRunning()) {
+                val intent = Intent(this, LocationService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+            }
+        } catch (e: Exception) {
+            logDebug(TAG, e.message)
+        }
+    }
+
+    /**
+     * Метод для остановки сервиса геолокации.
+     */
+    override fun stopService() {
+        try {
+            stopService(Intent(this, LocationService::class.java))
+        } catch (e: Exception) {
+            logDebug(TAG, e.message)
+        }
+    }
+
+    /**
+     * Метод для активации селектора с боку от выбранного (активного) элемента меню
+     * @selectedMenuItemTag Тег выбранного фрагмента
+     */
     private fun changeVisibilitySelectors(selectedMenuItemTag: String) {
         val stepsSelector = findViewById<View>(R.id.vMainMenuItemStepsSelector)
         val statisticsSelector = findViewById<View>(R.id.vMainMenuItemStatisticsSelector)
@@ -118,5 +163,24 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         stepsSelector.isVisible = selectedMenuItemTag == TrackerFragment.TAG
         statisticsSelector.isVisible = selectedMenuItemTag == StatisticsFragment.TAG
         settingsSelector.isVisible = selectedMenuItemTag == SettingsFragment.TAG
+    }
+
+    /**
+     * Метод для определения был ли запущен сервис геолокации.
+     */
+    @Suppress("DEPRECATION")
+    override fun isServiceRunning(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+
+        for (service in activityManager.getRunningServices(Integer.MAX_VALUE)) {
+            if (LocationService::class.java.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+    companion object {
+        const val TAG = "MainActivity"
     }
 }

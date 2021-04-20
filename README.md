@@ -11,7 +11,7 @@ This is very simple application that is used to determine coordinates and distan
 - [x] Сохранять точки координат / Save coordinates points
 - [x] Сохранять трек / Save track
 - [ ] Добавить настройки в приложение / Add settings to the application
-- [ ] Отображать время записи и дистанцию в уведомлении / Display recording time and distance in notification
+- [ ] Отображать дистанцию в уведомлении / Display distance in notification
 - [ ] Улучшить рассчет скорости / Improve speed calculation
 - [ ] Отображать статистику / Show statistics
 - [ ] Добавить тесты / Add tests

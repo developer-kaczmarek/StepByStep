@@ -4,8 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
-import android.os.Bundle
+import android.os.*
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -15,7 +14,8 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import io.github.kaczmarek.stepbystep.R
-import io.github.kaczmarek.stepbystep.services.LocationService
+import io.github.kaczmarek.stepbystep.services.TrackerService
+import io.github.kaczmarek.stepbystep.services.TrackerRecordListener
 import io.github.kaczmarek.stepbystep.ui.base.BaseActivity
 import io.github.kaczmarek.stepbystep.ui.settings.SettingsFragment
 import io.github.kaczmarek.stepbystep.ui.statistics.StatisticsFragment
@@ -26,7 +26,7 @@ import io.github.kaczmarek.stepbystep.utils.navigation.attachFragment
 import moxy.ktx.moxyPresenter
 
 class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateListener,
-    View.OnClickListener, LocationServiceLifecycleListener {
+    View.OnClickListener, TrackerRecordListener {
 
     private lateinit var dlMainContainer: DrawerLayout
     private lateinit var clMenuContainer: ConstraintLayout
@@ -123,17 +123,16 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
     }
 
     /**
-     * Метод для старта сервиса геолокации.
+     * Метод для старта сервиса записи трека.
      * Перед стартом необходимо запрашивать разрешение на получение координат.
      */
-    override fun startService() {
+    override fun startTrackRecording() {
         try {
-            if (!isServiceRunning()) {
-                val intent = Intent(this, LocationService::class.java)
+            if (!isRecording()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(intent)
+                    startForegroundService(Intent(this, TrackerService::class.java))
                 } else {
-                    startService(intent)
+                    startService(Intent(this, TrackerService::class.java))
                 }
             }
         } catch (e: Exception) {
@@ -142,14 +141,28 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
     }
 
     /**
-     * Метод для остановки сервиса геолокации.
+     * Метод для остановки сервиса записи трека.
      */
-    override fun stopService() {
+    override fun stopTrackRecording() {
         try {
-            stopService(Intent(this, LocationService::class.java))
+            stopService(Intent(this, TrackerService::class.java))
         } catch (e: Exception) {
             logDebug(TAG, e.message)
         }
+    }
+
+    /**
+     * Метод для определения запущена запись трека.
+     */
+    @Suppress("DEPRECATION")
+    override fun isRecording(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in activityManager.getRunningServices(Integer.MAX_VALUE)) {
+            if (TrackerService::class.java.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -163,21 +176,6 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         stepsSelector.isVisible = selectedMenuItemTag == TrackerFragment.TAG
         statisticsSelector.isVisible = selectedMenuItemTag == StatisticsFragment.TAG
         settingsSelector.isVisible = selectedMenuItemTag == SettingsFragment.TAG
-    }
-
-    /**
-     * Метод для определения был ли запущен сервис геолокации.
-     */
-    @Suppress("DEPRECATION")
-    override fun isServiceRunning(): Boolean {
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-
-        for (service in activityManager.getRunningServices(Integer.MAX_VALUE)) {
-            if (LocationService::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        return false
     }
 
     companion object {

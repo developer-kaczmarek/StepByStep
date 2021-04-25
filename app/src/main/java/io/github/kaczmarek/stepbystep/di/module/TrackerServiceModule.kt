@@ -12,72 +12,60 @@ import io.github.kaczmarek.data.point.PointRepositoryImpl
 import io.github.kaczmarek.data.track.TrackCache
 import io.github.kaczmarek.data.track.TrackRepositoryImpl
 import io.github.kaczmarek.domain.point.port.PointRepository
-import io.github.kaczmarek.domain.point.usecase.GetPointsUseCase
+import io.github.kaczmarek.domain.point.usecase.SavePointUseCase
 import io.github.kaczmarek.domain.track.port.TrackRepository
 import io.github.kaczmarek.domain.track.usecase.GetLastUnfinishedTrackUseCase
-import io.github.kaczmarek.domain.track.usecase.GetTrackCountUseCase
-import io.github.kaczmarek.domain.track.usecase.SaveTrackUseCase
-import io.github.kaczmarek.stepbystep.di.scope.TrackerScope
+import io.github.kaczmarek.stepbystep.di.scope.TrackerServiceScope
 
 @Module
-object TrackerModule {
+object TrackerServiceModule {
 
     @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun providePointDBModelMapper(): PointDBModelMapper {
         return PointDBModelMapper()
     }
 
     @Provides
-    @TrackerScope
-    fun providePointCache(roomDatabase: RoomDatabase, mapper: PointDBModelMapper): PointCache {
+    @TrackerServiceScope
+    fun providePointCache(
+        roomDatabase: RoomDatabase,
+        mapper: PointDBModelMapper
+    ): PointCache {
         return PointCacheImpl(roomDatabase, mapper)
     }
 
     @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun providePointRepository(pointCache: PointCache): PointRepository {
         return PointRepositoryImpl(pointCache)
     }
 
     @Provides
-    @TrackerScope
-    fun provideGetPointsUseCase(repository: PointRepository): GetPointsUseCase {
-        return GetPointsUseCase(repository)
+    @TrackerServiceScope
+    fun provideSavePointUseCase(repository: PointRepository): SavePointUseCase {
+        return SavePointUseCase(repository)
     }
-
     @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun provideTrackDBModelMapper(): TrackDBModelMapper {
         return TrackDBModelMapper()
     }
 
     @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun provideTrackCache(roomDatabase: RoomDatabase, mapper: TrackDBModelMapper): TrackCache {
         return TrackCacheImpl(roomDatabase, mapper)
     }
 
     @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun provideTrackRepository(trackCache: TrackCache): TrackRepository {
         return TrackRepositoryImpl(trackCache)
     }
 
     @Provides
-    @TrackerScope
-    fun provideSaveTrackUseCase(repository: TrackRepository): SaveTrackUseCase {
-        return SaveTrackUseCase(repository)
-    }
-
-    @Provides
-    @TrackerScope
-    fun provideGetTrackCountUseCase(repository: TrackRepository): GetTrackCountUseCase {
-        return GetTrackCountUseCase(repository)
-    }
-
-    @Provides
-    @TrackerScope
+    @TrackerServiceScope
     fun provideGetLastUnfinishedTrackUseCase(repository: TrackRepository): GetLastUnfinishedTrackUseCase {
         return GetLastUnfinishedTrackUseCase(repository)
     }

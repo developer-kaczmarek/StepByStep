@@ -4,6 +4,7 @@ import android.location.Location
 import android.location.LocationManager
 import io.github.kaczmarek.domain.point.usecase.GetPointsUseCase
 import io.github.kaczmarek.domain.track.entity.TrackEntity
+import io.github.kaczmarek.domain.track.usecase.GetLastUnfinishedTrackUseCase
 import io.github.kaczmarek.domain.track.usecase.GetTrackCountUseCase
 import io.github.kaczmarek.domain.track.usecase.SaveTrackUseCase
 import io.github.kaczmarek.stepbystep.di.DIManager
@@ -26,6 +27,9 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
 
     @Inject
     lateinit var getTrackCountUseCase: GetTrackCountUseCase
+
+    @Inject
+    lateinit var getLastUnfinishedTrackUseCase: GetLastUnfinishedTrackUseCase
 
     private var realDistance = 0F
     private var averageSpeed = 0.0
@@ -110,28 +114,51 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
         }
     }
 
-    fun saveCurrentTrack(recordTime: Long, isFinishedRecord: Boolean) {
+    fun saveCurrentTrack(duration: Long, isFinishedRecord: Boolean) {
         presenterScope.launch {
             try {
-                val trackCount = getTrackCountUseCase.execute()
-                val dateForId = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
-                saveTrackUseCase.execute(
-                    TrackEntity(
-                        dateForId + trackCount,
-                        realDistance,
-                        recordTime,
-                        maxSpeed,
-                        averageSpeed,
-                        currentSpeed,
-                        isFinishedRecord
+                val lastUnfinishedTrack = getLastUnfinishedTrackUseCase.execute()
+                lastUnfinishedTrack?.let {
+                    saveTrackUseCase.execute(
+                        it.copy(
+                            duration = duration,
+                            isFinishedRecord = isFinishedRecord
+                        )
                     )
-                )
+                }
             } catch (e: Exception) {
                 logError(TAG, e.message)
             }
         }
     }
 
+    fun startOrResumeTrack() {
+        presenterScope.launch {
+            try {
+                val lastUnfinishedTrack = getLastUnfinishedTrackUseCase.execute()
+                if(lastUnfinishedTrack == null) {
+                    val trackCount = getTrackCountUseCase.execute()
+                    val currentFormattedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+                    val id = currentFormattedDate + trackCount
+                    saveTrackUseCase.execute(
+                        TrackEntity(
+                            id,
+                            null,
+                            0L,
+                            null,
+                            null,
+                            null,
+                            isFinishedRecord = false
+                        )
+                    )
+                }
+                viewState.startTrackRecord(lastUnfinishedTrack?.duration ?: 0L)
+            } catch (e: Exception) {
+                logError(TAG, e.message)
+            }
+        }
+    }
+    
     companion object {
         const val TAG = "TrackerPresenter"
     }

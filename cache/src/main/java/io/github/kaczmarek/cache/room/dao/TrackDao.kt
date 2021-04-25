@@ -11,7 +11,7 @@ interface TrackDao : BaseDao<TrackDBModel> {
     suspend fun getTracks(): List<TrackDBModel>
 
     @Query("SELECT * FROM track WHERE isFinishedRecord = 0")
-    suspend fun getUnfinishedTrack(): TrackDBModel
+    suspend fun getUnfinishedTrack(): TrackDBModel?
 
     @Query("DELETE FROM track")
     suspend fun deleteAll()

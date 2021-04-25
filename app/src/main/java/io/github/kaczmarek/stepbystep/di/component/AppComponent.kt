@@ -4,7 +4,7 @@ import android.content.Context
 import dagger.BindsInstance
 import dagger.Component
 import io.github.kaczmarek.stepbystep.di.module.AppModule
-import io.github.kaczmarek.stepbystep.di.module.LocationServiceModule
+import io.github.kaczmarek.stepbystep.di.module.TrackerServiceModule
 import io.github.kaczmarek.stepbystep.di.module.TrackerModule
 import javax.inject.Singleton
 
@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Component(modules = [AppModule::class])
 interface AppComponent {
 
-    fun addLocationServiceSubcomponent(module: LocationServiceModule): LocationServiceSubcomponent
+    fun addTrackerServiceSubcomponent(module: TrackerServiceModule): TrackerServiceSubcomponent
     fun addTrackerSubcomponent(module: TrackerModule): TrackerSubcomponent
 
     @Component.Builder

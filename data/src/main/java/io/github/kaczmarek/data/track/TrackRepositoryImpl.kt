@@ -13,8 +13,8 @@ class TrackRepositoryImpl(private val trackCache: TrackCache) : TrackRepository 
         return trackCache.getTracks()
     }
 
-    override suspend fun getUnfinishedTrack(): TrackEntity? {
-        return trackCache.getUnfinishedTrack()
+    override suspend fun getLastUnfinishedTrack(): TrackEntity? {
+        return trackCache.getLastUnfinishedTrack()
     }
 
     override suspend fun deleteAll() {

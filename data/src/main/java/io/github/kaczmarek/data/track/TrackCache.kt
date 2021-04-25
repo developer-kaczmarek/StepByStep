@@ -5,6 +5,6 @@ import io.github.kaczmarek.domain.track.entity.TrackEntity
 
 interface TrackCache : Cache<TrackEntity> {
     suspend fun getTracks(): List<TrackEntity>
-    suspend fun getUnfinishedTrack(): TrackEntity?
+    suspend fun getLastUnfinishedTrack(): TrackEntity?
     suspend fun getTrackCount(): Int
 }

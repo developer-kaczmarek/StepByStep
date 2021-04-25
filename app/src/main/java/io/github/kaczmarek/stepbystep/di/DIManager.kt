@@ -1,28 +1,28 @@
 package io.github.kaczmarek.stepbystep.di
 
 import io.github.kaczmarek.stepbystep.di.component.AppComponent
-import io.github.kaczmarek.stepbystep.di.component.LocationServiceSubcomponent
+import io.github.kaczmarek.stepbystep.di.component.TrackerServiceSubcomponent
 import io.github.kaczmarek.stepbystep.di.component.TrackerSubcomponent
-import io.github.kaczmarek.stepbystep.di.module.LocationServiceModule
+import io.github.kaczmarek.stepbystep.di.module.TrackerServiceModule
 import io.github.kaczmarek.stepbystep.di.module.TrackerModule
 
 object DIManager {
     lateinit var appComponent: AppComponent
 
-    private var locationServiceSubcomponent: LocationServiceSubcomponent? = null
+    private var trackerServiceSubcomponent: TrackerServiceSubcomponent? = null
     private var trackerSubcomponent: TrackerSubcomponent? = null
 
-    fun getLocationServiceSubcomponent(): LocationServiceSubcomponent {
-        if (locationServiceSubcomponent == null) {
-            locationServiceSubcomponent =
-                appComponent.addLocationServiceSubcomponent(LocationServiceModule)
+    fun getTrackerServiceSubcomponent(): TrackerServiceSubcomponent {
+        if (trackerServiceSubcomponent == null) {
+            trackerServiceSubcomponent =
+                appComponent.addTrackerServiceSubcomponent(TrackerServiceModule)
         }
-        return locationServiceSubcomponent
-            ?: throw IllegalStateException("$locationServiceSubcomponent must not be null")
+        return trackerServiceSubcomponent
+            ?: throw IllegalStateException("$trackerServiceSubcomponent must not be null")
     }
 
-    fun removeLocationServiceSubcomponent() {
-        locationServiceSubcomponent = null
+    fun removeTrackerServiceSubcomponent() {
+        trackerServiceSubcomponent = null
     }
 
     fun getTrackerSubcomponent(): TrackerSubcomponent {

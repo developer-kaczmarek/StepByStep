@@ -22,20 +22,20 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textview.MaterialTextView
 import io.github.kaczmarek.stepbystep.R
-import io.github.kaczmarek.stepbystep.services.isLocationPermissionGranted
-import io.github.kaczmarek.stepbystep.ui.main.LocationServiceLifecycleListener
 import io.github.kaczmarek.stepbystep.ui.base.BaseFragment
 import io.github.kaczmarek.stepbystep.ui.main.MainActivity
+import io.github.kaczmarek.stepbystep.services.TrackerRecordListener
 import io.github.kaczmarek.stepbystep.utils.AppInsets
 import io.github.kaczmarek.stepbystep.utils.Utils.addLengthUnit
 import io.github.kaczmarek.stepbystep.utils.Utils.conversionInKmH
+import io.github.kaczmarek.stepbystep.utils.Utils.isLocationPermissionGranted
 import moxy.ktx.moxyPresenter
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, View.OnClickListener {
 
-    private var locationServiceLifecycleListener: LocationServiceLifecycleListener? = null
+    private var trackerRecordListener: TrackerRecordListener? = null
     private var gnssStatusCallback: GnssStatus.Callback? = null
     private var locationManager: LocationManager? = null
     private lateinit var clContainer: ConstraintLayout
@@ -59,7 +59,7 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        locationServiceLifecycleListener = context as MainActivity
+        trackerRecordListener = context as MainActivity
 
         val currentDateTime = Date()
         toolbar?.title =
@@ -85,9 +85,8 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                startTrackRecord()
+                presenter.startOrResumeTrack()
                 registerGnssStatusCallback()
-                changeRecordButtonsState()
             } else {
                 showRequestPermissionRationale()
             }
@@ -98,13 +97,13 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
         }
 
         chmTimeRecord.setOnChronometerTickListener {
-            presenter.getActualTrackInformation()
+            //      presenter.getActualTrackInformation()
         }
         bStartRecord.setOnClickListener(this)
         bStopRecord.setOnClickListener(this)
         bPauseRecord.setOnClickListener(this)
         changeRecordButtonsState()
-        presenter.initIndicatorsValue()
+        //  presenter.initIndicatorsValue()
     }
 
     override fun onDestroyView() {
@@ -160,46 +159,47 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
         when (v.id) {
             R.id.b_tracker_start_record -> {
                 when {
-                    isLocationPermissionGranted(requireContext()) -> {
-                        startTrackRecord()
+                    isLocationPermissionGranted() -> {
+                        presenter.startOrResumeTrack()
                         registerGnssStatusCallback()
-                        changeRecordButtonsState()
                     }
                     shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> showRequestPermissionRationale()
                     else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
             }
             R.id.b_tracker_stop_record -> {
-                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
                 suspendTrackRecord(isFinished = true)
+                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
+
                 changeRecordButtonsState()
             }
             R.id.b_tracker_pause_record -> {
-                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
                 suspendTrackRecord(isFinished = false)
+                gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
                 changeRecordButtonsState()
             }
         }
     }
 
-    private fun startTrackRecord() {
-        locationServiceLifecycleListener?.startService()
+    override fun startTrackRecord(duration: Long) {
+        trackerRecordListener?.startTrackRecording()
         with(chmTimeRecord) {
-            base = SystemClock.elapsedRealtime()
+            base = SystemClock.elapsedRealtime() - duration
             start()
         }
+        changeRecordButtonsState()
     }
 
     private fun suspendTrackRecord(isFinished: Boolean) {
-        locationServiceLifecycleListener?.stopService()
+        trackerRecordListener?.stopTrackRecording()
         chmTimeRecord.stop()
-        presenter.saveCurrentTrack(chmTimeRecord.base, isFinished)
+        presenter.saveCurrentTrack(SystemClock.elapsedRealtime() - chmTimeRecord.base, isFinished)
     }
 
     private fun changeRecordButtonsState() {
-        bStartRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == false
-        bStopRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == true
-        bPauseRecord.isVisible = locationServiceLifecycleListener?.isServiceRunning() == true
+        bStartRecord.isVisible = trackerRecordListener?.isRecording() == false
+        bStopRecord.isVisible = trackerRecordListener?.isRecording() == true
+        bPauseRecord.isVisible = trackerRecordListener?.isRecording() == true
     }
 
     private fun showRequestPermissionRationale() {

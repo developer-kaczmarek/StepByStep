@@ -14,8 +14,9 @@ class TrackCacheImpl(
         return roomDatabase.trackDao().getTracks().map { mapper.mapToEntity(it) }
     }
 
-    override suspend fun getUnfinishedTrack(): TrackEntity {
-        return mapper.mapToEntity(roomDatabase.trackDao().getUnfinishedTrack())
+    override suspend fun getLastUnfinishedTrack(): TrackEntity? {
+        val track = roomDatabase.trackDao().getUnfinishedTrack()
+        return track?.let { mapper.mapToEntity(it) }
     }
 
     override suspend fun getTrackCount(): Int {
@@ -23,15 +24,15 @@ class TrackCacheImpl(
     }
 
     override suspend fun insert(vararg obj: TrackEntity) {
-        roomDatabase.trackDao().insert(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.trackDao().insert(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun update(vararg obj: TrackEntity) {
-        roomDatabase.trackDao().update(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.trackDao().update(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun delete(vararg obj: TrackEntity) {
-        roomDatabase.trackDao().delete(*obj.map { mapper.mapFromEntity(it)}.toTypedArray())
+        roomDatabase.trackDao().delete(*obj.map { mapper.mapFromEntity(it) }.toTypedArray())
     }
 
     override suspend fun deleteAll() {

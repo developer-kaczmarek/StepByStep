@@ -24,7 +24,7 @@
         </activity>
 
         <service
-            android:name=".services.LocationService"
+            android:name=".services.TrackerService"
             android:exported="false"
             android:foregroundServiceType="location" />
 

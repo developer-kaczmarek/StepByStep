@@ -21,4 +21,6 @@ interface TrackerView : BaseView {
             maxSpeed: Float,
             averageSpeed: Double
     )
+
+    fun startTrackRecord(duration: Long)
 }

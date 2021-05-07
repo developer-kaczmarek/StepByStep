@@ -20,7 +20,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -36,7 +35,8 @@ class TrackerService : Service(), CoroutineScope {
     @Inject
     lateinit var getLastUnfinishedTrackUseCase: GetLastUnfinishedTrackUseCase
 
-    private var timeRecordingInSecond: Long = 0L
+    var durationRecordingInMillis: Long = 0L
+
     private var realDistance: Float = 0F
     private var lastLocation: Location? = null
     private var locationManager: LocationManager? = null
@@ -45,6 +45,7 @@ class TrackerService : Service(), CoroutineScope {
     private var updateCurrentLocationJob: Job? = null
     private var recordTimerJob: Job? = null
     private val timer = Timer()
+    private val binder = LocalBinder()
     private var taskCalculatingDurationAndDistance: TimerTask? = null
 
     init {
@@ -56,8 +57,8 @@ class TrackerService : Service(), CoroutineScope {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
+    override fun onBind(intent: Intent): IBinder {
+        return binder
     }
 
     override fun onDestroy() {
@@ -92,8 +93,8 @@ class TrackerService : Service(), CoroutineScope {
         SecurityException::class,
         TimeoutException::class
     )
-    suspend fun getCurrentLocation(): Location {
-        val coroutine = CompletableDeferred<Location>()
+    suspend fun getCurrentLocation(): Location? {
+        val coroutine = CompletableDeferred<Location?>()
         when {
             locationManager == null -> coroutine.completeExceptionally(
                 LocationException("Location manager not found")
@@ -273,21 +274,19 @@ class TrackerService : Service(), CoroutineScope {
 
         recordTimerJob = launch {
             try {
-                timeRecordingInSecond = getLastUnfinishedTrackUseCase.execute()?.duration ?: 0L
+                durationRecordingInMillis = getLastUnfinishedTrackUseCase.execute()?.duration ?: 0L
                 taskCalculatingDurationAndDistance = object : TimerTask() {
                     override fun run() {
                         val notification = getNotification(
                             getString(
                                 R.string.service_location_notification_record_text,
-                                TimeUnit.MILLISECONDS.toHours(timeRecordingInSecond),
-                                TimeUnit.MILLISECONDS.toMinutes(timeRecordingInSecond) % TimeUnit.HOURS.toMinutes(1),
-                                TimeUnit.MILLISECONDS.toSeconds(timeRecordingInSecond) % TimeUnit.MINUTES.toSeconds(1),
+                                getFormattedTime(durationRecordingInMillis),
                                 this@TrackerService.getFormattedDistance(realDistance)
                             )
                         )
                         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
                         manager?.notify(NOTIFICATION_ID, notification)
-                        timeRecordingInSecond += 1000
+                        durationRecordingInMillis += 1000
                     }
                 }
                 timer.scheduleAtFixedRate(taskCalculatingDurationAndDistance, 0, 1000)
@@ -317,4 +316,8 @@ class TrackerService : Service(), CoroutineScope {
      * настройки определения местоположения на устройстве.
      */
     class GPSDisabledException : Exception("Location adapter turned off on device")
+
+    inner class LocalBinder : Binder() {
+        fun getService(): TrackerService = this@TrackerService
+    }
 }

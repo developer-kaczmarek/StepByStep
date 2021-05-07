@@ -11,6 +11,8 @@
     <string name="common_settings">Настройки</string>
     <string name="common_ok">Понятно</string>
     <string name="common_cancel">Отмена</string>
+    <string name="common_zero" translatable="false">0</string>
+    <string name="common_format_time" translatable="false">%02d:%02d:%02d</string>
 
     <!-- Navigation Drawer Description -->
     <string name="navigation_drawer_open">Открыть меню</string>
@@ -36,7 +38,8 @@
     <!-- Location Service -->
     <string name="service_location_notification_channel_name">Сервис записи трека</string>
     <string name="service_location_notification_text">Время: --:--:--, Дистанция: - м</string>
-    <string name="service_location_notification_record_text">Время: %02d:%02d:%02d, Дистанция: %s</string>
+    <string name="service_location_notification_record_text">Время: %s, Дистанция: %s</string>
+
     <string name="service_location_notification_title">Идет запись трека</string>
     <string name="service_location_notification_channel_id">8653320</string>
     <string name="service_location_notification_group">service_location_notification_group</string>

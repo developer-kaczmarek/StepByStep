@@ -3,18 +3,15 @@ package io.github.kaczmarek.stepbystep.ui.tracker
 import io.github.kaczmarek.stepbystep.ui.base.BaseView
 
 interface TrackerView : BaseView {
-    fun initIndicatorsValue(
-            realDistance: Float,
-            goalDistance: Int,
-            currentAccuracy: Float,
-            currentSpeed: Float,
-            maxSpeed: Float,
-            averageSpeed: Double,
-            time: Long,
-            satellitesCount: Int
+    fun showInfoOfUnfinishedTrackIfPossible(
+        realDistance: Float,
+        currentSpeed: Float,
+        maxSpeed: Float,
+        averageSpeed: Double,
+        duration: Long
     )
 
-    fun updateParamsValue(
+    fun updateInfoAboutCurrentTrack(
             realDistance: Float,
             currentAccuracy: Float,
             currentSpeed: Float,
@@ -23,4 +20,5 @@ interface TrackerView : BaseView {
     )
 
     fun startTrackRecord(duration: Long)
+    fun showGoalDistance(goalDistance: Int)
 }

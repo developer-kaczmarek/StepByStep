@@ -2,6 +2,7 @@ package io.github.kaczmarek.stepbystep.ui.tracker
 
 import android.location.Location
 import android.location.LocationManager
+import io.github.kaczmarek.domain.point.usecase.DeleteAllPointsUseCase
 import io.github.kaczmarek.domain.point.usecase.GetPointsUseCase
 import io.github.kaczmarek.domain.track.entity.TrackEntity
 import io.github.kaczmarek.domain.track.usecase.GetLastUnfinishedTrackUseCase
@@ -9,7 +10,7 @@ import io.github.kaczmarek.domain.track.usecase.GetTrackCountUseCase
 import io.github.kaczmarek.domain.track.usecase.SaveTrackUseCase
 import io.github.kaczmarek.stepbystep.di.DIManager
 import io.github.kaczmarek.stepbystep.ui.base.BasePresenter
-import io.github.kaczmarek.stepbystep.utils.logDebug
+import io.github.kaczmarek.stepbystep.utils.getNumberOrZero
 import io.github.kaczmarek.stepbystep.utils.logError
 import kotlinx.coroutines.launch
 import moxy.presenterScope
@@ -31,6 +32,9 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
     @Inject
     lateinit var getLastUnfinishedTrackUseCase: GetLastUnfinishedTrackUseCase
 
+    @Inject
+    lateinit var deleteAllPointsUseCase: DeleteAllPointsUseCase
+
     private var realDistance = 0F
     private var averageSpeed = 0.0
     private var maxSpeed = 0F
@@ -45,18 +49,22 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
         DIManager.removeTrackerSubcomponent()
     }
 
-    fun initIndicatorsValue() {
-        // Временное решение
-        viewState.initIndicatorsValue(
-            0F,
-            4500,
-            0F,
-            0F,
-            0F,
-            0.0,
-            0L,
-            0
-        )
+    fun checkLastUnfinishedTrack() {
+        presenterScope.launch {
+            try {
+                realDistance = 0F
+                val track = getLastUnfinishedTrackUseCase.execute()
+                viewState.showInfoOfUnfinishedTrackIfPossible(
+                    track?.distance ?: realDistance,
+                    track?.currentSpeed ?: currentSpeed,
+                    track?.maxSpeed ?: maxSpeed,
+                    track?.averageSpeed ?: averageSpeed,
+                    track?.duration ?: 0L
+                )
+            } catch (e: Exception) {
+                logError(TAG, e.message)
+            }
+        }
     }
 
     fun getActualTrackInformation() {
@@ -66,23 +74,23 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
                 val points = getPointsUseCase.execute()
                 var lastLocation = Location(LocationManager.GPS_PROVIDER)
 
-                points.forEachIndexed { index, pointEntity ->
+                points.forEachIndexed { index, item ->
                     if (index == 0) {
                         with(lastLocation) {
-                            latitude = pointEntity.latitude
-                            longitude = pointEntity.latitude
-                            altitude = pointEntity.altitude
-                            accuracy = pointEntity.accuracy
-                            speed = pointEntity.speed
+                            latitude = item.latitude
+                            longitude = item.latitude
+                            altitude = item.altitude
+                            accuracy = item.accuracy
+                            speed = item.speed
                         }
                     } else {
                         val location = Location(LocationManager.GPS_PROVIDER)
                         with(location) {
-                            latitude = pointEntity.latitude
-                            longitude = pointEntity.latitude
-                            altitude = pointEntity.altitude
-                            accuracy = pointEntity.accuracy
-                            speed = pointEntity.speed
+                            latitude = item.latitude
+                            longitude = item.latitude
+                            altitude = item.altitude
+                            accuracy = item.accuracy
+                            speed = item.speed
                         }
                         val distanceBetweenPoints = lastLocation.distanceTo(location)
                         if (distanceBetweenPoints > location.accuracy) {
@@ -91,22 +99,18 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
                         lastLocation = location
                     }
                 }
-                val currentAccuracy = points.lastOrNull()?.accuracy ?: 0F
+                val currentAccuracy = getNumberOrZero(points.lastOrNull()?.accuracy ?: 0F)
                 val speeds: List<Float> = points.map { it.speed * 3.6F } // Перевод скорости в км/ч
-                averageSpeed = speeds.average()
-                maxSpeed = speeds.maxOrNull() ?: 0F
-                currentSpeed = points.lastOrNull()?.speed ?: 0F
+                averageSpeed = getNumberOrZero(speeds.average())
+                maxSpeed = getNumberOrZero(speeds.maxOrNull() ?: 0F)
+                currentSpeed = getNumberOrZero(points.lastOrNull()?.speed ?: 0F)
 
-                viewState.updateParamsValue(
+                viewState.updateInfoAboutCurrentTrack(
                     realDistance,
                     currentAccuracy,
                     currentSpeed,
                     maxSpeed,
                     averageSpeed
-                )
-                logDebug(
-                    TAG,
-                    "distance = $realDistance, currentAccuracy = $currentAccuracy, averageSpeed = $averageSpeed, maxSpeed = $maxSpeed"
                 )
             } catch (e: Exception) {
                 logError(TAG, e.message)
@@ -121,7 +125,11 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
                 lastUnfinishedTrack?.let {
                     saveTrackUseCase.execute(
                         it.copy(
+                            distance = realDistance,
                             duration = duration,
+                            maxSpeed = maxSpeed,
+                            averageSpeed = averageSpeed,
+                            currentSpeed = currentSpeed,
                             isFinishedRecord = isFinishedRecord
                         )
                     )
@@ -136,7 +144,8 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
         presenterScope.launch {
             try {
                 val lastUnfinishedTrack = getLastUnfinishedTrackUseCase.execute()
-                if(lastUnfinishedTrack == null) {
+                if (lastUnfinishedTrack == null) {
+                    deleteAllPointsUseCase.execute()
                     val trackCount = getTrackCountUseCase.execute()
                     val currentFormattedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
                     val id = currentFormattedDate + trackCount
@@ -158,8 +167,21 @@ class TrackerPresenter : BasePresenter<TrackerView>() {
             }
         }
     }
-    
+
+    fun getGoalDistance() {
+        // Здесь будет обращение до SharedPrefs через UseCase
+        presenterScope.launch {
+            try {
+                viewState.showGoalDistance(GOAL_DISTANCE)
+            } catch (e: Exception) {
+                logError(TAG, e.message)
+            }
+        }
+    }
+
     companion object {
         const val TAG = "TrackerPresenter"
+
+        const val GOAL_DISTANCE = 4500 // Перенести в настройки
     }
 }

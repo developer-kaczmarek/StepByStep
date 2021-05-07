@@ -13,7 +13,6 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
 import android.widget.Chronometer
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
@@ -29,6 +28,7 @@ import io.github.kaczmarek.stepbystep.utils.AppInsets
 import io.github.kaczmarek.stepbystep.utils.Utils.addLengthUnit
 import io.github.kaczmarek.stepbystep.utils.Utils.conversionInKmH
 import io.github.kaczmarek.stepbystep.utils.Utils.isLocationPermissionGranted
+import io.github.kaczmarek.stepbystep.utils.getFormattedTime
 import moxy.ktx.moxyPresenter
 import java.text.SimpleDateFormat
 import java.util.*
@@ -51,8 +51,18 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
     private lateinit var bStartRecord: MaterialButton
     private lateinit var bStopRecord: MaterialButton
     private lateinit var bPauseRecord: MaterialButton
-    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
-    private lateinit var openSettingsLauncher: ActivityResultLauncher<Intent>
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            startOrResumeTrack()
+        } else {
+            showRequestPermissionRationale()
+        }
+    }
+    private val openSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
 
     private val presenter by moxyPresenter { TrackerPresenter() }
 
@@ -81,33 +91,26 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
         bStopRecord = view.findViewById(R.id.b_tracker_stop_record)
         bPauseRecord = view.findViewById(R.id.b_tracker_pause_record)
 
-        requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                presenter.startOrResumeTrack()
-                registerGnssStatusCallback()
-            } else {
-                showRequestPermissionRationale()
-            }
-        }
-
-        openSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-
         chmTimeRecord.setOnChronometerTickListener {
-            //      presenter.getActualTrackInformation()
+            it.text = it.context.getFormattedTime(SystemClock.elapsedRealtime() - it.base)
+            presenter.getActualTrackInformation()
         }
         bStartRecord.setOnClickListener(this)
         bStopRecord.setOnClickListener(this)
         bPauseRecord.setOnClickListener(this)
+        presenter.getGoalDistance()
+        if (trackerRecordListener?.isRecording() == true) {
+            startChronometer(trackerRecordListener?.getActualDuration() ?: 0L)
+            presenter.getActualTrackInformation()
+        } else {
+            presenter.checkLastUnfinishedTrack()
+        }
         changeRecordButtonsState()
-        //  presenter.initIndicatorsValue()
     }
 
     override fun onDestroyView() {
         gnssStatusCallback?.let { locationManager?.unregisterGnssStatusCallback(it) }
+        chmTimeRecord.stop()
         openSettingsLauncher.unregister()
         requestPermissionLauncher.unregister()
         super.onDestroyView()
@@ -117,30 +120,25 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
         clContainer.updatePadding(top = insets.top, bottom = insets.bottom)
     }
 
-    override fun initIndicatorsValue(
+    override fun showInfoOfUnfinishedTrackIfPossible(
         realDistance: Float,
-        goalDistance: Int,
-        currentAccuracy: Float,
         currentSpeed: Float,
         maxSpeed: Float,
         averageSpeed: Double,
-        time: Long,
-        satellitesCount: Int
+        duration: Long
     ) {
         tvCurrentDistance.text = realDistance.addLengthUnit()
-        with(lpiGoalProgress) {
-            progress = realDistance.toInt()
-            max = goalDistance
-        }
-        tvGoalDistance.text = goalDistance.addLengthUnit()
-        tvAccuracy.text = currentAccuracy.addLengthUnit()
+        lpiGoalProgress.progress = realDistance.toInt()
         tvCurrentSpeed.text = currentSpeed.conversionInKmH()
         tvMaxSpeed.text = maxSpeed.conversionInKmH()
         tvAverageSpeed.text = averageSpeed.conversionInKmH()
-        tvSatellites.text = satellitesCount.toString()
+        chmTimeRecord.text = chmTimeRecord.context.getFormattedTime(duration)
+        val zero = getString(R.string.common_zero)
+        tvAccuracy.text = getString(R.string.common_m, zero)
+        tvSatellites.text = zero
     }
 
-    override fun updateParamsValue(
+    override fun updateInfoAboutCurrentTrack(
         realDistance: Float,
         currentAccuracy: Float,
         currentSpeed: Float,
@@ -160,8 +158,7 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
             R.id.b_tracker_start_record -> {
                 when {
                     isLocationPermissionGranted() -> {
-                        presenter.startOrResumeTrack()
-                        registerGnssStatusCallback()
+                        startOrResumeTrack()
                     }
                     shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> showRequestPermissionRationale()
                     else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -183,11 +180,13 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
 
     override fun startTrackRecord(duration: Long) {
         trackerRecordListener?.startTrackRecording()
-        with(chmTimeRecord) {
-            base = SystemClock.elapsedRealtime() - duration
-            start()
-        }
+        startChronometer(duration)
         changeRecordButtonsState()
+    }
+
+    override fun showGoalDistance(goalDistance: Int) {
+        lpiGoalProgress.max = goalDistance
+        tvGoalDistance.text = goalDistance.addLengthUnit()
     }
 
     private fun suspendTrackRecord(isFinished: Boolean) {
@@ -216,6 +215,18 @@ class TrackerFragment : BaseFragment(R.layout.fragment_tracker), TrackerView, Vi
             },
             negBtnTxt = getString(R.string.common_cancel)
         )
+    }
+
+    private fun startChronometer(duration: Long) {
+        with(chmTimeRecord) {
+            base = SystemClock.elapsedRealtime() - duration
+            start()
+        }
+    }
+
+    private fun startOrResumeTrack() {
+        presenter.startOrResumeTrack()
+        registerGnssStatusCallback()
     }
 
     @SuppressLint("MissingPermission")

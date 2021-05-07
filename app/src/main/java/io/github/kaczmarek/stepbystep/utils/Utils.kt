@@ -8,6 +8,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import io.github.kaczmarek.stepbystep.R
 import java.text.DecimalFormat
+import java.util.concurrent.TimeUnit
 
 object Utils {
     private var application: Application? = null
@@ -86,4 +87,13 @@ fun isLocationPermissionGranted(context: Context): Boolean {
         context,
         Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
+}
+
+fun Context.getFormattedTime(millis: Long): String {
+    return getString(
+        R.string.common_format_time,
+        TimeUnit.MILLISECONDS.toHours(millis),
+        TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+        TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1)
+    )
 }

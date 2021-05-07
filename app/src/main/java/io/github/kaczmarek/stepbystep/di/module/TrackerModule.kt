@@ -12,6 +12,7 @@ import io.github.kaczmarek.data.point.PointRepositoryImpl
 import io.github.kaczmarek.data.track.TrackCache
 import io.github.kaczmarek.data.track.TrackRepositoryImpl
 import io.github.kaczmarek.domain.point.port.PointRepository
+import io.github.kaczmarek.domain.point.usecase.DeleteAllPointsUseCase
 import io.github.kaczmarek.domain.point.usecase.GetPointsUseCase
 import io.github.kaczmarek.domain.track.port.TrackRepository
 import io.github.kaczmarek.domain.track.usecase.GetLastUnfinishedTrackUseCase
@@ -44,6 +45,12 @@ object TrackerModule {
     @TrackerScope
     fun provideGetPointsUseCase(repository: PointRepository): GetPointsUseCase {
         return GetPointsUseCase(repository)
+    }
+
+    @Provides
+    @TrackerScope
+    fun provideDeleteAllPointsUseCase(repository: PointRepository): DeleteAllPointsUseCase {
+        return DeleteAllPointsUseCase(repository)
     }
 
     @Provides

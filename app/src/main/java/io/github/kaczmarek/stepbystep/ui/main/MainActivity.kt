@@ -1,8 +1,10 @@
 package io.github.kaczmarek.stepbystep.ui.main
 
 import android.app.ActivityManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Color
 import android.os.*
 import android.view.*
@@ -21,6 +23,7 @@ import io.github.kaczmarek.stepbystep.ui.settings.SettingsFragment
 import io.github.kaczmarek.stepbystep.ui.statistics.StatisticsFragment
 import io.github.kaczmarek.stepbystep.ui.tracker.TrackerFragment
 import io.github.kaczmarek.stepbystep.utils.logDebug
+import io.github.kaczmarek.stepbystep.utils.logError
 import io.github.kaczmarek.stepbystep.utils.navigation.OnNavigateListener
 import io.github.kaczmarek.stepbystep.utils.navigation.attachFragment
 import moxy.ktx.moxyPresenter
@@ -32,6 +35,20 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
     private lateinit var clMenuContainer: ConstraintLayout
     private lateinit var flContentContainer: FrameLayout
     private var actionBarDrawerToggle: ActionBarDrawerToggle? = null
+    private var isBoundService: Boolean = false
+    private var trackerService: TrackerService? = null
+    private val connection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as TrackerService.LocalBinder
+            trackerService = binder.getService()
+            isBoundService = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            isBoundService = false
+        }
+    }
 
     val presenter by moxyPresenter { MainPresenter() }
 
@@ -75,7 +92,15 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (isRecording() && isBoundService) {
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
     override fun onDestroy() {
+        unbindServiceIfNeed()
         actionBarDrawerToggle?.let { dlMainContainer.removeDrawerListener(it) }
         super.onDestroy()
     }
@@ -128,13 +153,15 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
      */
     override fun startTrackRecording() {
         try {
+            val intent = Intent(this, TrackerService::class.java)
             if (!isRecording()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(Intent(this, TrackerService::class.java))
+                    startForegroundService(intent)
                 } else {
-                    startService(Intent(this, TrackerService::class.java))
+                    startService(intent)
                 }
             }
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
         } catch (e: Exception) {
             logDebug(TAG, e.message)
         }
@@ -144,6 +171,7 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
      * Метод для остановки сервиса записи трека.
      */
     override fun stopTrackRecording() {
+        unbindServiceIfNeed()
         try {
             stopService(Intent(this, TrackerService::class.java))
         } catch (e: Exception) {
@@ -165,6 +193,10 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         return false
     }
 
+    override fun getActualDuration(): Long {
+        return if (isBoundService) trackerService?.durationRecordingInMillis ?: 0L else 0L
+    }
+
     /**
      * Метод для активации селектора с боку от выбранного (активного) элемента меню
      * @selectedMenuItemTag Тег выбранного фрагмента
@@ -176,6 +208,20 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
         stepsSelector.isVisible = selectedMenuItemTag == TrackerFragment.TAG
         statisticsSelector.isVisible = selectedMenuItemTag == StatisticsFragment.TAG
         settingsSelector.isVisible = selectedMenuItemTag == SettingsFragment.TAG
+    }
+
+    private fun unbindServiceIfNeed() {
+        try {
+            trackerService?.let {
+                if (isBoundService) {
+                    unbindService(connection)
+                    isBoundService = false
+                }
+            }
+            trackerService = null
+        } catch (e: Exception) {
+            logError(TAG, e.message)
+        }
     }
 
     companion object {

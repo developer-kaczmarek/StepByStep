@@ -94,7 +94,7 @@ class MainActivity : BaseActivity(R.layout.activity_main), MainView, OnNavigateL
 
     override fun onStart() {
         super.onStart()
-        if (isRecording() && isBoundService) {
+        if (isRecording() && !isBoundService) {
             bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }
